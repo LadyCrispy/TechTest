@@ -1,20 +1,70 @@
 'use strict';
 
+const fetch = require('node-fetch')
+
 module.exports = {
 
-    getUsers: function(req, res) {
+    getUsers: async function (req, res) {
+
         console.log('Starting find users')
-        res.json({"hola": {
-            "nombre": "find users"
-        }})
-        
+
+        const page = req.query.page || 1
+        const limit = req.query.limit || 20
+
+        try {
+
+            if (limit % 20 != 0) return res.status(400).json({ message: 'Limit must be multiple of 20' });
+
+            let num = limit / 20
+            let endPage = num * page
+            let startPage = endPage - num + 1
+
+            let data = []
+
+            for (let i = startPage; i <= endPage; i++) {
+                const apiResponse = await fetch(`https://gorest.co.in/public-api/users?page=${i}`)
+                const apiResponseJson = await apiResponse.json()
+                data = await data.concat(apiResponseJson.data)
+            }
+
+            res.send({ 
+                "code": 200,
+                data 
+            })
+        } catch (err) {
+            console.log(err)
+            res.status(500).send({ 'code': 500, 'message': "An error happened" })
+        }
     },
 
-    getUserById: function(req, res) {
+    getUserById: async function (req, res) {
         console.log(`Starting find user with Id: ${req.params.id}`)
-        res.json({"hola": {
-            "nombre": "find user by id"
-        }})
+
+        const id = req.params.id
+
+        try {
+
+            let data
+
+            const userData = await fetch(`https://gorest.co.in/public-api/users/${id}`)
+            const userPosts = await fetch(`https://gorest.co.in/public-api/users/${id}/posts`)
+
+            const userDataJson = await userData.json()
+            const userPostsJson = await userPosts.json()
+
+            if(userDataJson.code != 200) return res.status(userDataJson.code).json({ code : userDataJson.code, message: userDataJson.data.message });
+
+            data = userDataJson.data
+            data.posts = userPostsJson.data
+
+            res.json({
+                "code": 200,
+                data
+            })
+        } catch (err) {
+            console.log(err)
+            res.status(500).send({ 'message': "An error happened" })
+        }
     }
 
 };
