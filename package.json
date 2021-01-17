@@ -6,6 +6,7 @@
     "start": "nodemon app.js"
   },
   "dependencies": {
+    "chromedriver": "^87.0.5",
     "express": "~4.16.1",
     "http-errors": "~1.6.3",
     "node-fetch": "^2.6.1",

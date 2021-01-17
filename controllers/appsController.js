@@ -2,6 +2,23 @@
 
 const { Builder, By, Key, until } = require('selenium-webdriver');
 
+async function getDesc(driver, titles, descriptions, downloads, num) {
+    if (num > 0) await driver.navigate().back()
+    await titles[num].click()
+    await driver.wait(until.elementLocated(By.xpath('//*[@jsname="sngebd"]'), 4000))
+        .then(async data => {
+            let desc = await driver.findElement(By.xpath('//*[@jsname="sngebd"]'), 4000)
+            await desc.getText().then(data => {
+                descriptions.push(data)
+            })
+
+            let download = await driver.findElements(By.xpath('//*[@class="htlgb"]'), 4000)
+            await download[4].getText().then(data => {
+                downloads.push(data)
+            })
+        })
+}
+
 module.exports = {
 
     getApps: async function (req, res) {
@@ -16,31 +33,6 @@ module.exports = {
 
             let descriptions = []
             let downloads = []
-
-            async function getDesc(num) {
-                if (num > 0) await driver.navigate().back()
-                await titles[num].click()
-                await driver.wait(until.elementLocated(By.xpath('//*[@jsname="sngebd"]'), 4000))
-                    .then(async data => {
-                        let desc = await driver.findElement(By.xpath('//*[@jsname="sngebd"]'), 4000)
-                        await desc.getText().then(data => {
-                            descriptions.push(data)
-                        })
-
-                        let download = await driver.findElements(By.xpath('//*[@class="htlgb"]'), 4000)
-                        await download[4].getText().then(data => {
-                            downloads.push(data)
-                        })
-                    }).catch(err => {
-                        console.log(err)
-                        driver.quit()
-                        return res.status(404).send({
-                            "code": 404,
-                            "message": "Apps not found"
-                        })
-                    })
-            }
-
 
             let titles = await driver.findElements(By.className("WsMG1c"))
 
@@ -59,7 +51,7 @@ module.exports = {
                 .then(async function (data) {
 
                     for (let j = 0; j < 5; j++) {
-                        await getDesc(j)
+                        await getDesc(driver, titles, descriptions, downloads, j)
                     }
 
                     for (let key in descriptions) {
@@ -71,8 +63,10 @@ module.exports = {
                     }
 
                     (await driver).quit()
-                    return res.json({ data: names })
-
+                    return res.status(200).send({
+                        "code": 200,
+                        data: names
+                    })
                 })
                 .catch(err => {
                     console.log(err)
@@ -134,23 +128,6 @@ module.exports = {
                         titlesNames.push(names[i].getText())
                     }
 
-                    async function getDesc(num) {
-                        if (num > 0) await driver.navigate().back()
-                        await names[num].click()
-                        await driver.wait(until.elementLocated(By.xpath('//*[@jsname="sngebd"]'), 4000))
-                            .then(async data => {
-                                let desc = await driver.findElement(By.xpath('//*[@jsname="sngebd"]'), 4000)
-                                await desc.getText().then(res => {
-                                    descriptions.push(res)
-                                })
-
-                                let download = await driver.findElements(By.xpath('//*[@class="htlgb"]'), 4000)
-                                await download[4].getText().then(res => {
-                                    downloads.push(res)
-                                })
-                            })
-                    }
-
                     Promise.all(titlesNames).then(async function (data) {
                         for (let key in data) {
                             apps[key] = { 'title': data[key] }
@@ -159,7 +136,7 @@ module.exports = {
                         .then(async function (data) {
 
                             for (let j = 0; j < 5; j++) {
-                                await getDesc(j)
+                                await getDesc(driver, names, descriptions, downloads, j)
                             }
 
                             for (let key in descriptions) {
@@ -171,7 +148,10 @@ module.exports = {
                             }
 
                             (await driver).quit()
-                            return res.json({ data: apps })
+                            return res.status(200).send({
+                                "code": 200,
+                                data: apps
+                            })
 
                         })
                         .catch(err => {
