@@ -23,18 +23,21 @@ module.exports = {
                 await driver.wait(until.elementLocated(By.xpath('//*[@jsname="sngebd"]'), 4000))
                     .then(async data => {
                         let desc = await driver.findElement(By.xpath('//*[@jsname="sngebd"]'), 4000)
-                        await desc.getText().then(res => {
-                            descriptions.push(res)
+                        await desc.getText().then(data => {
+                            descriptions.push(data)
                         })
 
                         let download = await driver.findElements(By.xpath('//*[@class="htlgb"]'), 4000)
-                        await download[4].getText().then(res => {
-                            downloads.push(res)
+                        await download[4].getText().then(data => {
+                            downloads.push(data)
                         })
                     }).catch(err => {
                         console.log(err)
                         driver.quit()
-                        res.json('err')
+                        return res.status(404).send({
+                            "code": 404,
+                            "message": "Apps not found"
+                        })
                     })
             }
 
@@ -74,11 +77,18 @@ module.exports = {
                 .catch(err => {
                     console.log(err)
                     driver.quit()
-                    res.json('err')
+                    return res.status(404).send({
+                        "code": 404,
+                        "message": "Apps description not found"
+                    })
                 })
         } catch (err) {
+            console.log(err)
             driver.quit()
-            res.json('err')
+            return res.status(500).send({
+                "code": 500,
+                "message": "An error happened"
+            })
         }
     },
 
@@ -98,33 +108,31 @@ module.exports = {
         let driver = new Builder().forBrowser('chrome').build();
         driver.manage().window().maximize();
         driver.get('https://play.google.com/store/apps');
-        // try {
 
-
-            await driver.findElement(By.id("action-dropdown-parent-Categorías")).click()
-            await driver.findElement(By.xpath(`//*[contains(text(), '${category}')]`), 4000)
-            .then( async data=>{
+        await driver.findElement(By.id("action-dropdown-parent-Categorías")).click()
+        await driver.findElement(By.xpath(`//*[contains(text(), '${category}')]`), 4000)
+            .then(async data => {
                 let btn = await driver.findElement(By.xpath(`//*[contains(text(), '${category}')]`), 4000)
                 btn.click()
 
                 let descriptions = []
                 let downloads = []
-    
+
                 await driver.wait(until.titleContains(`${category}`), 4000)
-    
+
                 let apps = {}
-    
+
                 let section = await driver.findElement(By.xpath(`//*[@style="visibility: visible; opacity: 1;"]`))
-    
+
                 let names = await section.findElements(By.className("WsMG1c"))
-    
-    
+
+
                 let promesitas = []
-    
+
                 for (let i = 0; i < 4; i++) {
                     promesitas.push(names[i].getText())
                 }
-    
+
                 async function getDesc(num) {
                     if (num > 0) await driver.navigate().back()
                     await names[num].click()
@@ -134,7 +142,7 @@ module.exports = {
                             await desc.getText().then(res => {
                                 descriptions.push(res)
                             })
-    
+
                             let download = await driver.findElements(By.xpath('//*[@class="htlgb"]'), 4000)
                             await download[4].getText().then(res => {
                                 downloads.push(res)
@@ -144,112 +152,40 @@ module.exports = {
                             res.json('err')
                         })
                 }
-    
+
                 Promise.all(promesitas).then(async function (data) {
                     for (let key in data) {
                         apps[key] = { 'title': data[key] }
                     }
                 })
                     .then(async function (data) {
-    
+
                         for (let j = 0; j < 4; j++) {
                             await getDesc(j)
                         }
-    
+
                         for (let key in descriptions) {
                             apps[key].description = descriptions[key]
                         }
-    
+
                         for (let key in downloads) {
                             apps[key].downloads = downloads[key]
                         }
-    
+
                         (await driver).quit()
                         return res.json({ data: apps })
-    
+
                     })
                     .catch(err => {
                         console.log(err)
                         driver.quit()
                         res.json('err')
                     })
-            }).catch(err=>{
+            }).catch(err => {
                 console.log(err)
                 driver.quit()
                 res.json('Category not found')
             })
-            // btn.click()
-
-            // let descriptions = []
-            // let downloads = []
-
-            // await driver.wait(until.titleContains(`${category}`), 4000)
-
-            // let apps = {}
-
-            // let section = await driver.findElement(By.xpath(`//*[@style="visibility: visible; opacity: 1;"]`))
-
-            // let names = await section.findElements(By.className("WsMG1c"))
-
-
-            // let promesitas = []
-
-            // for (let i = 0; i < 4; i++) {
-            //     promesitas.push(names[i].getText())
-            // }
-
-            // async function getDesc(num) {
-            //     if (num > 0) await driver.navigate().back()
-            //     await names[num].click()
-            //     await driver.wait(until.elementLocated(By.xpath('//*[@jsname="sngebd"]'), 4000))
-            //         .then(async data => {
-            //             let desc = await driver.findElement(By.xpath('//*[@jsname="sngebd"]'), 4000)
-            //             await desc.getText().then(res => {
-            //                 descriptions.push(res)
-            //             })
-
-            //             let download = await driver.findElements(By.xpath('//*[@class="htlgb"]'), 4000)
-            //             await download[4].getText().then(res => {
-            //                 downloads.push(res)
-            //             })
-            //         }).catch(err => {
-            //             driver.quit()
-            //             res.json('err')
-            //         })
-            // }
-
-            // Promise.all(promesitas).then(async function (data) {
-            //     for (let key in data) {
-            //         apps[key] = { 'title': data[key] }
-            //     }
-            // })
-            //     .then(async function (data) {
-
-            //         for (let j = 0; j < 4; j++) {
-            //             await getDesc(j)
-            //         }
-
-            //         for (let key in descriptions) {
-            //             apps[key].description = descriptions[key]
-            //         }
-
-            //         for (let key in downloads) {
-            //             apps[key].downloads = downloads[key]
-            //         }
-
-            //         (await driver).quit()
-            //         return res.json({ data: apps })
-
-            //     })
-            //     .catch(err => {
-            //         console.log(err)
-            //         driver.quit()
-            //         res.json('err')
-            //     })
-        // } catch (err) {
-            // driver.quit()
-            // res.json('err')
-        // }
 
     }
 
