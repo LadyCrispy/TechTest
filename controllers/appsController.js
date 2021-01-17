@@ -1,6 +1,7 @@
 'use strict';
 
 const { Builder, By, Key, until } = require('selenium-webdriver');
+let chrome = require('selenium-webdriver/chrome');
 
 async function getDesc(driver, titles, descriptions, downloads, num) {
     if (num > 0) await driver.navigate().back()
@@ -19,13 +20,18 @@ async function getDesc(driver, titles, descriptions, downloads, num) {
         })
 }
 
+const screen = {
+    width: 2000,
+    height: 1080,
+}
+
 module.exports = {
 
     getApps: async function (req, res) {
 
         console.log('Starting find apps')
-        let driver = new Builder().forBrowser('chrome').build();
-        driver.manage().window().maximize();
+
+        let driver = new Builder().forBrowser('chrome').setChromeOptions(new chrome.Options().headless().windowSize(screen)).build();
         driver.get('https://play.google.com/store/apps');
 
         try {
@@ -99,8 +105,8 @@ module.exports = {
 
         let category = capitalize(req.params.category)
 
-        let driver = new Builder().forBrowser('chrome').build();
-        driver.manage().window().maximize();
+        let driver = new Builder().forBrowser('chrome').setChromeOptions(new chrome.Options().headless().windowSize(screen)).build();
+
         driver.get('https://play.google.com/store/apps');
 
         await driver.findElement(By.id("action-dropdown-parent-Categorías")).click()
