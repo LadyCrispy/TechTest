@@ -45,7 +45,7 @@ module.exports = {
             let titles = await driver.findElements(By.className("WsMG1c"))
 
             let titlesNames = []
-            for (let i = 0; i < 4; i++) {
+            for (let i = 0; i < 5; i++) {
                 titlesNames.push(titles[i].getText())
             }
 
@@ -58,7 +58,7 @@ module.exports = {
             })
                 .then(async function (data) {
 
-                    for (let j = 0; j < 4; j++) {
+                    for (let j = 0; j < 5; j++) {
                         await getDesc(j)
                     }
 
@@ -130,7 +130,7 @@ module.exports = {
 
                     let titlesNames = []
 
-                    for (let i = 0; i < 4; i++) {
+                    for (let i = 0; i < 5; i++) {
                         titlesNames.push(names[i].getText())
                     }
 
@@ -158,7 +158,7 @@ module.exports = {
                     })
                         .then(async function (data) {
 
-                            for (let j = 0; j < 4; j++) {
+                            for (let j = 0; j < 5; j++) {
                                 await getDesc(j)
                             }
 

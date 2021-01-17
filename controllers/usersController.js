@@ -27,7 +27,7 @@ module.exports = {
                 data = await data.concat(apiResponseJson.data)
             }
 
-            res.send({ 
+            return res.status(200).send({ 
                 "code": 200,
                 data 
             })
@@ -52,12 +52,12 @@ module.exports = {
             const userDataJson = await userData.json()
             const userPostsJson = await userPosts.json()
 
-            if(userDataJson.code != 200) return res.status(userDataJson.code).json({ code : userDataJson.code, message: userDataJson.data.message });
+            if(userDataJson.code != 200) return res.status(userDataJson.code).send({ code : userDataJson.code, message: userDataJson.data.message });
 
             data = userDataJson.data
             data.posts = userPostsJson.data
 
-            res.json({
+            return res.status(200).send({
                 "code": 200,
                 data
             })
